@@ -20,6 +20,4 @@ class SequenceExtractor(ABC):
                 currStart = pattern[0]
                 if not YupiUtils.areSamePointsInTime(prevEnd, currStart) # match pos and time
 
-
-
             prevPattern = pattern
