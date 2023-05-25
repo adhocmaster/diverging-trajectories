@@ -8,7 +8,7 @@ from diverging_trajectories.YupiUtils import YupiUtils
 class SequenceExtractor(ABC):
 
     @abstractmethod
-    def extract(self, track: pd.DataFrame) -> List[Pattern]:
+    def extract(self, trackId: str, track: pd.DataFrame) -> List[Pattern]:
         raise NotImplementedError()
     
     def validateSequence(self, patterns: List[Pattern]) -> bool:
@@ -18,6 +18,9 @@ class SequenceExtractor(ABC):
             if prevPattern is not None:
                 prevEnd = prevPattern[-1]
                 currStart = pattern[0]
-                if not YupiUtils.areSamePointsInTime(prevEnd, currStart) # match pos and time
+                # print(f"prevEnd={prevEnd}, \ncurrStart={currStart}")
+                if not YupiUtils.areSamePointsInTime(prevEnd, currStart): # match pos and time
+                    return False
 
             prevPattern = pattern
+        return True

@@ -1,1 +1,2 @@
 from .Pattern import Pattern
+from .TimeIntervalSequenceExtractor import TimeIntervalSequenceExtractor
