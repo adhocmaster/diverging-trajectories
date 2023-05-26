@@ -1,2 +1,4 @@
 from .Pattern import Pattern
 from .TimeIntervalSequenceExtractor import TimeIntervalSequenceExtractor
+from .PatternModel import PatternModel
+from .IntervalPatternSequence import IntervalPatternSequence

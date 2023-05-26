@@ -38,6 +38,7 @@ class TimeIntervalSequenceExtractor(SequenceExtractor):
             patterns.append(
                 Pattern.fromDataFrame(
                     sourceId=trackId,
+                    interval=self.interval,
                     patternSeqNo=sliceNo,
                     patternDf=patternDf,
                     xCol=self.xCol,
