@@ -1,2 +1,4 @@
 from peewee import *
-db = SqliteDatabase('pattern.db', field_types={'points': 'text'})
+import sys, os
+dbPath = os.path.join(os.getcwd(), 'pattern.db')
+db = SqliteDatabase(dbPath, field_types={'points': 'text'})

@@ -12,10 +12,11 @@ class PointsField(Field):
     def db_value(self, pointsArr: List[Collection[float]]) -> str:
 
         val = json.dumps(pointsArr)
-        print(val)
+        print("python val", val)
         return val
 
     def python_value(self, jsonVal) -> List[Collection[float]] :
+        print("jsonVal: ", jsonVal)
         pval = json.loads(jsonVal)
         return pval
 

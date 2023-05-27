@@ -32,4 +32,22 @@ class IntervalPatternRepository:
         return PatternModel.get(PatternModel.patternSize == patternSize)
     
     def getAll(self) -> List[PatternModel]:
-        return PatternModel.select()
+        pms = PatternModel.select()
+        return self.toPatterns(pms)
+    
+
+    def toPatterns(self, pms: List[PatternModel]) -> Pattern:
+        ps = []
+        for pm in pms:
+            ps.append(self.toPattern(pm))
+        return ps
+
+    def toPattern(self, pm: PatternModel) -> Pattern:
+        print(pm.points)
+        return Pattern(
+            sourceId=pm.sourceId,
+            interval=pm.interval,
+            patternSeqNo=pm.patternSeqNo,
+            points=pm.points,
+            t_0=pm.t_0
+        )
