@@ -6,13 +6,13 @@ from diverging_trajectories.pattern.PatternModel import PatternModel
 from diverging_trajectories.pattern.PatternSequence import PatternSequence
 
 
-class PatternCollection:
+class IntervalPatternRepository:
     def __init__(self) -> None:
         pass
 
 
     def addSequence(self, sourceId: str, interval: float, patterns: List[Pattern]) -> IntervalPatternSequence:
-        seqModel = IntervalPatternSequence.create(sourceId, interval=interval)
+        seqModel = IntervalPatternSequence.create(sourceId=sourceId, interval=interval)
         for i, pattern in enumerate(patterns):
             PatternModel.create(
                 sourceId = seqModel.sourceId,
@@ -28,5 +28,8 @@ class PatternCollection:
         return IntervalPatternSequence.get()
     
 
-    def getPatterns(self, patternSize: int) -> List[Pattern]:
-        return Pattern.get(Pattern.patternSize == patternSize)
+    def getPatterns(self, patternSize: int) -> List[PatternModel]:
+        return PatternModel.get(PatternModel.patternSize == patternSize)
+    
+    def getAll(self) -> List[PatternModel]:
+        return PatternModel.select()

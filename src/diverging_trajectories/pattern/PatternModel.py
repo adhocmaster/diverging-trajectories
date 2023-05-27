@@ -28,3 +28,4 @@ class PatternModel(BaseModel):
     sequence = ForeignKeyField(IntervalPatternSequence, backref='pattern')
     class Meta:
         table_name = 'pattern'
+        primary_key = CompositeKey('sourceId', 'interval', 'patternSeqNo', 'sequence')
