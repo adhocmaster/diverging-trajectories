@@ -23,7 +23,8 @@ class Pattern(Trajectory):
     
 
     def __getitem__(self, index) -> Union[Trajectory, TrajectoryPoint]:
-            index = index % len(self.r)
+            if isinstance(index, int):
+                index = index % len(self.r)
             return super().__getitem__(index) # fix
     
     @staticmethod
