@@ -3,6 +3,7 @@ import pandas as pd
 import logging
 import math
 from sortedcontainers import SortedList
+import numpy as np
 
 from diverging_trajectories.pattern import Pattern
 from diverging_trajectories.YupiUtils import YupiUtils
@@ -21,21 +22,22 @@ class DisplacementIntervalSequenceExtractor(SequenceExtractor):
             interval: float,
             tolerance: float, # fraction of interval
             yLow: float,
-            yhigh: float,
+            yHigh: float,
             xCol: str, yCol: str
             ) -> None:
         self.interval = interval
         self.tolerance = tolerance
         self.yLow = yLow # now we can use incomplete trajectories
-        self.yHigh = yhigh
+        self.yHigh = yHigh
         self.xCol = xCol
         self.yCol = yCol
 
-        assert yLow < yhigh, "yLow must be less than yhigh"
+        assert yLow < yHigh, "yLow must be less than yHigh"
 
         self.segmentOffsets = SortedList([])
-        for offset in range(yLow, yhigh, interval):
-            self.segmentOffsets.append(offset)
+        for offset in np.arange(yLow, yHigh, interval):
+            self.segmentOffsets.add(offset)
+        print(self.segmentOffsets)
 
     def extract(self, trackId: str, track: pd.DataFrame) -> List[Pattern]:
         
@@ -47,18 +49,48 @@ class DisplacementIntervalSequenceExtractor(SequenceExtractor):
         # 5. may not have enough points to form a pattern at the beginning
 
         # now we walk along the track and extract patterns
+        patterns = []
         patternStarted = False
         yOffset = None
         patternRows = []
-        for row in track.iterrows():
+        seqNo = 0
+        t_0 = 0.0
+        for _, row in track.iterrows():
             if not patternStarted:
                 # find the segment first
                 yOffset = self.getSegmentOffset(row[self.yCol])
+                patternStarted = True
+                print(f"pattern started at {row[self.yCol]} with offset {yOffset}")
+            
+            if patternStarted:
+                # check if we are still in the segment
+                if row[self.yCol] > yOffset + self.interval:
+                    # we are out of the segment, so we need to create a pattern
+                    print(f"pattern end at {row[self.yCol]} with offset {yOffset}")
 
+                    if len(patternRows) > 0:
+                        # convert it to a pattern
+                        pattern = Pattern.fromDataFrameRows(
+                            sourceId=trackId,
+                            interval=self.interval,
+                            patternSeqNo=seqNo,
+                            rows=patternRows,
+                            xCol=self.xCol,
+                            yCol=self.yCol,
+                            t_0=t_0,
+                            yLow=self.yLow
+                        )
+                    patterns.append(pattern)
+                    t_0 += len(patternRows)
+                    patternStarted = False
+                    patternRows = []
+                    seqNo += 1
+                else:
+                    # we are still in the segment
+                    patternRows.append(row)
 
+        return patterns
 
-
-        raise NotImplementedError()
     
     def getSegmentOffset(self, y: float) -> float:
         """Get the offset of the segment that contains the y value.
