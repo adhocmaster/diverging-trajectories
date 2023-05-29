@@ -16,7 +16,7 @@ class SequenceExtractor(ABC):
         prevPattern = None
         for pattern in patterns:
             if prevPattern is not None:
-                print(f"prevPattern ={prevPattern.r}, {prevPattern.t}")
+                # print(f"prevPattern ={prevPattern.r}, {prevPattern.t}")
                 prevEnd = prevPattern[-1]
                 currStart = pattern[0]
                 # print(f"prevEnd={prevEnd}, \ncurrStart={currStart}")

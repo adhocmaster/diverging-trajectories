@@ -27,8 +27,6 @@ class TrajectoryFixed(Trajectory):
         
         if t is not None:
             t_0 = t[0]
-        
-        print(t, t_0)
 
         super().__init__(
             x=x,
