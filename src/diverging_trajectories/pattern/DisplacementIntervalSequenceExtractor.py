@@ -205,7 +205,7 @@ class DisplacementIntervalSequenceExtractor(SequenceExtractor):
                 patternSeqNo=pattern.patternSeqNo,
                 points=newPoints,
                 t_0=new_t_0,
-                yOffset=segmentOffset - self.yLow,
+                yOffset=self._getSegmentOffset(pattern[0].r[1]) - self.yLow,
             )
         
         return pattern

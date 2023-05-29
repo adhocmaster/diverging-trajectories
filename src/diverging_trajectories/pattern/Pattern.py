@@ -32,6 +32,7 @@ class Pattern(TrajectoryFixed):
         self.patternSeqNo = patternSeqNo
         self.points = points
         self.yOffset = yOffset
+        self.roundYOffset = None if yOffset is None else round(yOffset)
 
         super().__init__(points=points, t_0=t_0)
     
