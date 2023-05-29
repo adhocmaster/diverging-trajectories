@@ -37,7 +37,23 @@ class DisplacementIntervalSequenceExtractor(SequenceExtractor):
         self.segmentOffsets = SortedList([])
         for offset in np.arange(yLow, yHigh, interval):
             self.segmentOffsets.add(offset)
-        print(self.segmentOffsets)
+        # print(self.segmentOffsets)
+    
+    def _getSegmentOffset(self, y: float) -> float:
+        """Get the offset of the segment that contains the y value.
+
+        Args:
+            y (float): y value
+
+        Returns:
+            float: offset of the segment
+        """
+        assert y >= self.yLow and y <= self.yHigh, f"y must be within the range of {self.yLow} and {self.yHigh}"
+        idx = self.segmentOffsets.bisect_left(y)
+        if y not in self.segmentOffsets:
+            idx -= 1
+        return self.segmentOffsets[idx]
+    
 
     def extract(self, trackId: str, track: pd.DataFrame) -> List[Pattern]:
         
@@ -58,15 +74,16 @@ class DisplacementIntervalSequenceExtractor(SequenceExtractor):
         for _, row in track.iterrows():
             if not patternStarted:
                 # find the segment first
-                yOffset = self.getSegmentOffset(row[self.yCol])
+                yOffset = self._getSegmentOffset(row[self.yCol])
                 patternStarted = True
-                print(f"pattern started at {row[self.yCol]} with offset {yOffset}")
+                # print(f"pattern started at {row[self.yCol]} with offset {yOffset}")
             
             if patternStarted:
+                patternRows.append(row)
                 # check if we are still in the segment
                 if row[self.yCol] > yOffset + self.interval:
                     # we are out of the segment, so we need to create a pattern
-                    print(f"pattern end at {row[self.yCol]} with offset {yOffset}")
+                    # print(f"pattern end at {row[self.yCol]} with offset {yOffset}")
 
                     if len(patternRows) > 0:
                         # convert it to a pattern
@@ -81,28 +98,109 @@ class DisplacementIntervalSequenceExtractor(SequenceExtractor):
                             yLow=self.yLow
                         )
                     patterns.append(pattern)
-                    t_0 += len(patternRows)
+                    t_0 += len(patternRows) - 1 # we are adding the last point to the next
                     patternStarted = False
-                    patternRows = []
+                    patternRows = [row] # next must start at the end of the current
                     seqNo += 1
-                else:
-                    # we are still in the segment
-                    patternRows.append(row)
+                # else:
+                #     # we are still in the segment
+                #     patternRows.append(row)
 
-        return patterns
+        if self.validateSequence(patterns):
+            return patterns
+        else:
+            raise ValueError("Invalid sequence. Check if they are broken.")
+        # return patterns
+    
+    def adjustAllToInterval(
+            self, 
+            patterns: List[Pattern],
+        ) -> List[Pattern]:
+        adjustedPatterns = []
+        previousNewPattern = None
+        for pattern in patterns:
+
+            if previousNewPattern is not None:
+                # two adjustments
+                # the last of previous new pattern has to be the first of new pattern
+                # newPattern t needs to be updated.
+                new_t_0 = previousNewPattern[-1].t
+                newPattern = self.adjustToStartInterval(pattern, new_t_0=new_t_0)
+                newPattern = self.adjustToEndInterval(newPattern, new_t_0=new_t_0)
+
+            else:
+                new_t_0 = pattern.t_0
+                newPattern = self.adjustToStartInterval(pattern, new_t_0=new_t_0)
+                newPattern = self.adjustToEndInterval(newPattern, new_t_0=new_t_0)
+
+            adjustedPatterns.append(newPattern)
+            
+            previousNewPattern = newPattern
+            
+        if self.validateSequence(adjustedPatterns):
+            return adjustedPatterns
+        else:
+            raise ValueError("Invalid sequence. Check if they are broken.")
+    
+    def adjustToStartInterval(
+            self,
+            pattern: Pattern,
+            new_t_0: float
+        ) -> Pattern:
+        """Adjust the pattern by predicting, instead of extending. We can train a model to predict the missing parts.
+        """
+
+        firstY = pattern[0].r[1]
+        print(f"first point y: {firstY}")
+        segmentOffset = self._getSegmentOffset(firstY)
+        print(f"segmentOffset: {segmentOffset}")
+        if segmentOffset != firstY:
+            # we need to extend the pattern to the _getSegmentOffset
+            oldPoints = pattern.points
+            newPoint = (oldPoints[0][0], segmentOffset)
+            newPoints = [newPoint] + oldPoints[1:]
+            return Pattern(
+                sourceId=pattern.sourceId,
+                interval=self.interval,
+                patternSeqNo=pattern.patternSeqNo,
+                points=newPoints,
+                t_0=new_t_0,
+                yOffset=segmentOffset - self.yLow,
+            )
+        
+        return pattern
+    
+    def adjustToEndInterval(
+            self,
+            pattern: Pattern,
+            new_t_0: float
+        ) -> Pattern:
+        """Replaces the last point. Adjust the pattern by predicting, instead of extending. We can train a model to predict the missing parts.
+        """
+
+        lastY = pattern[-1].r[1]
+        print(f"last point y: {lastY}")
+        segmentOffset = self._getSegmentOffset(lastY)
+        print(f"segmentOffset: {segmentOffset}")
+        if segmentOffset != lastY:
+            # we need to extend the pattern to the _getSegmentOffset
+            oldPoints = pattern.points
+            newPoint = (oldPoints[-1][0], segmentOffset)
+            newPoints = oldPoints[0: len(oldPoints) - 1] + [newPoint]
+            return Pattern(
+                sourceId=pattern.sourceId,
+                interval=self.interval,
+                patternSeqNo=pattern.patternSeqNo,
+                points=newPoints,
+                t_0=new_t_0,
+                yOffset=segmentOffset - self.yLow,
+            )
+        
+        return pattern
+
+
+
 
     
-    def getSegmentOffset(self, y: float) -> float:
-        """Get the offset of the segment that contains the y value.
 
-        Args:
-            y (float): y value
 
-        Returns:
-            float: offset of the segment
-        """
-        assert y >= self.yLow and y <= self.yHigh, f"y must be within the range of {self.yLow} and {self.yHigh}"
-        idx = self.segmentOffsets.bisect_left(y)
-        if y not in self.segmentOffsets:
-            idx -= 1
-        return self.segmentOffsets[idx]
