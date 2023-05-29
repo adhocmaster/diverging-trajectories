@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 import pandas as pd
 from typing import *
-from yupi import Trajectory, TrajectoryPoint
-from yupi.trajectory import Axis, Point
+from yupi.trajectory import Point
 
-class Pattern(Trajectory):
+from .TrajectoryFixed import TrajectoryFixed
+
+class Pattern(TrajectoryFixed):
     
     def __init__(
         self,
@@ -34,11 +35,6 @@ class Pattern(Trajectory):
 
         super().__init__(points=points, t_0=t_0)
     
-
-    def __getitem__(self, index) -> Union[Trajectory, TrajectoryPoint]:
-            if isinstance(index, int):
-                index = index % len(self.r)
-            return super().__getitem__(index) # fix
     
     @staticmethod
     def fromDataFrame(
@@ -112,3 +108,5 @@ class Pattern(Trajectory):
             t_0=t_0,
             yOffset=yOffset
         )
+    
+    

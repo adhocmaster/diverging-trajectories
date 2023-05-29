@@ -151,9 +151,9 @@ class DisplacementIntervalSequenceExtractor(SequenceExtractor):
         """
 
         firstY = pattern[0].r[1]
-        print(f"first point y: {firstY}")
+        # print(f"first point y: {firstY}")
         segmentOffset = self._getSegmentOffset(firstY)
-        print(f"segmentOffset: {segmentOffset}")
+        # print(f"segmentOffset: {segmentOffset}")
         if segmentOffset != firstY:
             # we need to extend the pattern to the _getSegmentOffset
             oldPoints = pattern.points
@@ -179,9 +179,9 @@ class DisplacementIntervalSequenceExtractor(SequenceExtractor):
         """
 
         lastY = pattern[-1].r[1]
-        print(f"last point y: {lastY}")
+        # print(f"last point y: {lastY}")
         segmentOffset = self._getSegmentOffset(lastY)
-        print(f"segmentOffset: {segmentOffset}")
+        # print(f"segmentOffset: {segmentOffset}")
         if segmentOffset != lastY:
             # we need to extend the pattern to the _getSegmentOffset
             oldPoints = pattern.points
