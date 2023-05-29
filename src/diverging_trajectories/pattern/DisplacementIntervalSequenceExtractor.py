@@ -112,10 +112,22 @@ class DisplacementIntervalSequenceExtractor(SequenceExtractor):
             raise ValueError("Invalid sequence. Check if they are broken.")
         # return patterns
     
+
     def adjustAllToInterval(
             self, 
             patterns: List[Pattern],
         ) -> List[Pattern]:
+        """This adjustment cannot work as we have regular interval in time, not space.
+
+        Args:
+            patterns (List[Pattern]): _description_
+
+        Raises:
+            ValueError: _description_
+
+        Returns:
+            List[Pattern]: _description_
+        """
         adjustedPatterns = []
         previousNewPattern = None
         for pattern in patterns:
