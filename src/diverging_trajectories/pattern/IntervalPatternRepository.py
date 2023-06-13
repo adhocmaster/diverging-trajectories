@@ -62,23 +62,23 @@ class IntervalPatternRepository:
         return self.toPatterns(pms)
     
     @lru_cache(maxsize=1)
-    def getPatternsByRoundOffset(self, roundOffset: int) -> List[Pattern]:
-        pms = PatternModel.select().join(IntervalPatternSequence).where((IntervalPatternSequence.type == self.intervalType) & (PatternModel.roundYOffset == roundOffset))
+    def getPatternsByRoundOffset(self, roundYOffset: int) -> List[Pattern]:
+        pms = PatternModel.select().join(IntervalPatternSequence).where((IntervalPatternSequence.type == self.intervalType) & (PatternModel.roundYOffset == roundYOffset))
         return self.toPatterns(pms)
     
     @lru_cache(maxsize=1)
-    def getPatternsByHeadingStart(self, startPositive: bool, roundOffset: int) -> List[Pattern]:
+    def getPatternsByHeadingStart(self, startPositive: bool, roundYOffset: int) -> List[Pattern]:
         if startPositive:
             clauses = (PatternModel.headingStart >= 0)
         else:
             clauses = (PatternModel.headingStart < 0)
 
-        clauses = clauses & (PatternModel.roundYOffset == roundOffset)
+        clauses = clauses & (PatternModel.roundYOffset == roundYOffset)
         pms = PatternModel.select().join(IntervalPatternSequence).where((IntervalPatternSequence.type == self.intervalType) & clauses)
         return self.toPatterns(pms)
     
     @lru_cache(maxsize=1)
-    def getPatternsByHeadingBoth(self, startPositive: bool, endPositive: bool, roundOffset: int) -> List[Pattern]:
+    def getPatternsByHeadingBoth(self, startPositive: bool, endPositive: bool, roundYOffset: int) -> List[Pattern]:
         if startPositive:
             clauses = (PatternModel.headingStart >= 0)
         else:
@@ -87,7 +87,7 @@ class IntervalPatternRepository:
             clauses = clauses & (PatternModel.headingEnd >= 0)
         else:       
             clauses = clauses & (PatternModel.headingEnd < 0)
-        clauses = clauses & (PatternModel.roundYOffset == roundOffset)
+        clauses = clauses & (PatternModel.roundYOffset == roundYOffset)
         pms = PatternModel.select().join(IntervalPatternSequence).where((IntervalPatternSequence.type == self.intervalType) & clauses)
         return self.toPatterns(pms)
 
