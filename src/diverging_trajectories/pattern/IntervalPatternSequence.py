@@ -9,6 +9,7 @@ from diverging_trajectories.pattern.PatternSequence import PatternSequence
 class IntervalPatternSequence(BaseModel):
     sourceId = CharField(primary_key=True)
     interval = FloatField()
+    type = CharField(max_length=5)
     # def __init__(
     #         self,
     #         sourceId: str,

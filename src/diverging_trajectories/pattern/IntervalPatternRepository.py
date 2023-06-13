@@ -1,3 +1,4 @@
+from functools import lru_cache
 from .db import db
 from typing import List
 from diverging_trajectories.pattern import Pattern
@@ -7,12 +8,13 @@ from diverging_trajectories.pattern.PatternSequence import PatternSequence
 
 
 class IntervalPatternRepository:
-    def __init__(self) -> None:
+    def __init__(self, intervalType: str) -> None:
+        self.intervalType = intervalType
         pass
 
 
     def addSequence(self, sourceId: str, interval: float, patterns: List[Pattern]) -> IntervalPatternSequence:
-        seqModel = IntervalPatternSequence.create(sourceId=sourceId, interval=interval)
+        seqModel = IntervalPatternSequence.create(sourceId=sourceId, interval=interval, type=self.intervalType)
         for i, pattern in enumerate(patterns):
             PatternModel.create(
                 sourceId = seqModel.sourceId,
@@ -20,20 +22,13 @@ class IntervalPatternRepository:
                 patternSeqNo = i,
                 points = pattern.points,
                 t_0 = pattern.t_0,
-                sequence = seqModel
+                sequence = seqModel,
+                yOffset = pattern.yOffset,
+                roundYOffset = pattern.roundYOffset,
+                headingStart = pattern.headingStart,
+                headingEnd = pattern.headingEnd
             )
         return seqModel
-    
-    def getSequences(self) -> List[IntervalPatternSequence]:
-        return IntervalPatternSequence.get()
-    
-
-    def getPatterns(self, patternSize: int) -> List[PatternModel]:
-        return PatternModel.get(PatternModel.patternSize == patternSize)
-    
-    def getAll(self) -> List[PatternModel]:
-        pms = PatternModel.select()
-        return self.toPatterns(pms)
     
 
     def toPatterns(self, pms: List[PatternModel]) -> Pattern:
@@ -43,11 +38,62 @@ class IntervalPatternRepository:
         return ps
 
     def toPattern(self, pm: PatternModel) -> Pattern:
-        print(pm.points)
+        # print(pm.points)
         return Pattern(
             sourceId=pm.sourceId,
             interval=pm.interval,
             patternSeqNo=pm.patternSeqNo,
             points=pm.points,
-            t_0=pm.t_0
+            t_0=pm.t_0,
+            yOffset=pm.yOffset
         )
+
+
+    ## region search methods
+
+    
+    def getSequences(self) -> List[IntervalPatternSequence]:
+        return IntervalPatternSequence.select().where(IntervalPatternSequence.type == self.intervalType)
+    
+    def getPatterns(self) -> List[Pattern]:
+        pms = PatternModel.select().join(IntervalPatternSequence).where(IntervalPatternSequence.type == self.intervalType)
+        return self.toPatterns(pms)
+    
+    def getPatternsByRoundOffset(self, roundOffset: int) -> List[Pattern]:
+        pms = PatternModel.select().join(IntervalPatternSequence).where((IntervalPatternSequence.type == self.intervalType) & (PatternModel.roundYOffset == roundOffset))
+        return self.toPatterns(pms)
+    
+    def getPatternsByHeadingStart(self, startPositive: bool, roundOffset: int) -> List[Pattern]:
+        if startPositive:
+            clauses = (PatternModel.headingStart >= 0)
+        else:
+            clauses = (PatternModel.headingStart < 0)
+
+        clauses = clauses & (PatternModel.roundYOffset == roundOffset)
+        pms = PatternModel.select().join(IntervalPatternSequence).where((IntervalPatternSequence.type == self.intervalType) & clauses)
+        return self.toPatterns(pms)
+    
+    def getPatternsByHeadingBoth(self, startPositive: bool, endPositive: bool, roundOffset: int) -> List[Pattern]:
+        if startPositive:
+            clauses = (PatternModel.headingStart >= 0)
+        else:
+            clauses = (PatternModel.headingStart < 0)
+        if endPositive:
+            clauses = clauses & (PatternModel.headingEnd >= 0)
+        else:       
+            clauses = clauses & (PatternModel.headingEnd < 0)
+        clauses = clauses & (PatternModel.roundYOffset == roundOffset)
+        pms = PatternModel.select().join(IntervalPatternSequence).where((IntervalPatternSequence.type == self.intervalType) & clauses)
+        return self.toPatterns(pms)
+
+    
+    @lru_cache(maxsize=1)
+    def getCachedPatterns(self) -> List[Pattern]:
+        pms = PatternModel.select().join(IntervalPatternSequence).where(IntervalPatternSequence.type == self.intervalType)
+        return self.toPatterns(pms)
+    
+
+
+
+    
+    ## End region search methods
