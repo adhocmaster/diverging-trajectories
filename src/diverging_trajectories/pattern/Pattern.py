@@ -5,6 +5,8 @@ from yupi.trajectory import Point
 
 from .TrajectoryFixed import TrajectoryFixed
 
+from tti_dataset_tools.TrajectoryUtils import TrajectoryUtils
+
 class Pattern(TrajectoryFixed):
     
     def __init__(
@@ -34,7 +36,13 @@ class Pattern(TrajectoryFixed):
         self.yOffset = yOffset
         self.roundYOffset = None if yOffset is None else round(yOffset)
 
+        self.headingStart = TrajectoryUtils.headingX(points[0], points[1])
+        self.headingEnd = TrajectoryUtils.headingX(points[-2], points[-1])
+
         super().__init__(points=points, t_0=t_0)
+
+
+    
     
     
     @staticmethod
