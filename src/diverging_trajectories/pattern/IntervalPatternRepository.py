@@ -52,17 +52,21 @@ class IntervalPatternRepository:
     ## region search methods
 
     
+    @lru_cache(maxsize=1)
     def getSequences(self) -> List[IntervalPatternSequence]:
         return IntervalPatternSequence.select().where(IntervalPatternSequence.type == self.intervalType)
     
+    @lru_cache(maxsize=1)
     def getPatterns(self) -> List[Pattern]:
         pms = PatternModel.select().join(IntervalPatternSequence).where(IntervalPatternSequence.type == self.intervalType)
         return self.toPatterns(pms)
     
+    @lru_cache(maxsize=1)
     def getPatternsByRoundOffset(self, roundOffset: int) -> List[Pattern]:
         pms = PatternModel.select().join(IntervalPatternSequence).where((IntervalPatternSequence.type == self.intervalType) & (PatternModel.roundYOffset == roundOffset))
         return self.toPatterns(pms)
     
+    @lru_cache(maxsize=1)
     def getPatternsByHeadingStart(self, startPositive: bool, roundOffset: int) -> List[Pattern]:
         if startPositive:
             clauses = (PatternModel.headingStart >= 0)
@@ -73,6 +77,7 @@ class IntervalPatternRepository:
         pms = PatternModel.select().join(IntervalPatternSequence).where((IntervalPatternSequence.type == self.intervalType) & clauses)
         return self.toPatterns(pms)
     
+    @lru_cache(maxsize=1)
     def getPatternsByHeadingBoth(self, startPositive: bool, endPositive: bool, roundOffset: int) -> List[Pattern]:
         if startPositive:
             clauses = (PatternModel.headingStart >= 0)
