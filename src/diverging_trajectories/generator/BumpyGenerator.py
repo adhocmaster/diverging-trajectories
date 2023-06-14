@@ -10,7 +10,7 @@ class BumpyGenerator(TrajectoryGenerator):
     """Bumpy generator stiches patterns without any smoothing. We can only constrain in the heading difference
     """
 
-    def __init__(self, patternRepository: IntervalPatternRepository, interval: float, maxHeadingDiff: float) -> None:
+    def __init__(self, patternRepository: IntervalPatternRepository, interval: float, maxHeadingDiff: float = 90.0) -> None:
         """_summary_
 
         Args:
@@ -36,12 +36,20 @@ class BumpyGenerator(TrajectoryGenerator):
         segmentPatterns = self.patternRepository.getPatternsByHeadingStart(startPositive=True, roundYOffset=roundYOffset)
         while len(segmentPatterns) > 0:
             for i in range(n):
-                trajPatterns[i].append(random.choice(segmentPatterns))
+                allowedPatterns = self.filterByHeadingDiff(trajPatterns[i][-1].headingEnd, segmentPatterns)
+                trajPatterns[i].append(random.choice(allowedPatterns))
             roundYOffset += interval
             segmentPatterns = self.patternRepository.getPatternsByHeadingStart(startPositive=True, roundYOffset=roundYOffset)
         
         combinedPatterns = [self.combinePatterns(patterns) for patterns in trajPatterns]
         return combinedPatterns
+    
+    def filterByHeadingDiff(self, heading: float, patterns: List[Pattern]) -> List[Pattern]:
+        filteredPatterns = []
+        for pattern in patterns:
+            if abs(pattern.headingStart - heading) <= self.maxHeadingDiff:
+                filteredPatterns.append(pattern)
+        return filteredPatterns
         
         
 

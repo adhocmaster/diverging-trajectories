@@ -117,5 +117,16 @@ class Pattern(TrajectoryFixed):
             t_0=t_0,
             yOffset=yOffset
         )
+
+    @staticmethod
+    def shift(pattern: 'Pattern', shift: Tuple[float, float]) -> 'Pattern':
+        points = TrajectoryUtils.shift(pattern.points, shift)
     
-    
+        return Pattern(
+            sourceId=pattern.sourceId,
+            interval=pattern.interval,
+            patternSeqNo=pattern.patternSeqNo,
+            points=points,
+            t_0=pattern.t_0,
+            yOffset=pattern.yOffset
+        )

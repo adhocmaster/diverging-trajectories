@@ -1,4 +1,4 @@
-tti_dataset_tools>=0.1.5
+tti_dataset_tools>=0.1.6
 numpy==1.23.4
 shapely=1.7.1
 tdqm>=4.15.0
