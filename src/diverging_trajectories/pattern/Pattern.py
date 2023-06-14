@@ -62,7 +62,7 @@ class Pattern(TrajectoryFixed):
 
         yOffset = None
         if yLow is not None:
-             firstY = patternDf.iloc[0]["sceneY"]
+             firstY = patternDf.iloc[0][yCol]
              yOffset = firstY - yLow
              assert yOffset >= 0, f"yOffset={yOffset} < 0"
 
@@ -98,7 +98,7 @@ class Pattern(TrajectoryFixed):
 
         yOffset = None
         if yLow is not None:
-             firstY = rows[0]["sceneY"]
+             firstY = rows[0][yCol]
              yOffset = firstY - yLow
              assert yOffset >= 0, f"yOffset={yOffset} < 0"
 

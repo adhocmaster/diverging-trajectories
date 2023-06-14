@@ -35,13 +35,20 @@ class BumpyGenerator(TrajectoryGenerator):
         roundYOffset += interval
         segmentPatterns = self.patternRepository.getPatternsByHeadingStart(startPositive=True, roundYOffset=roundYOffset)
         while len(segmentPatterns) > 0:
-            for i in range(n):
+            for i in range(n): # for each trajectory to be generated, add the next segment part
+                if len(trajPatterns[i]) == 0:
+                    continue # has been cleared
                 allowedPatterns = self.filterByHeadingDiff(trajPatterns[i][-1].headingEnd, segmentPatterns)
+                if len(allowedPatterns) == 0:
+                    # print(f"number of segmend patterns = {len(segmentPatterns)} and number of allowed patterns = {len(allowedPatterns)}")
+                    trajPatterns[i].clear()
+                    continue
                 trajPatterns[i].append(random.choice(allowedPatterns))
             roundYOffset += interval
             segmentPatterns = self.patternRepository.getPatternsByHeadingStart(startPositive=True, roundYOffset=roundYOffset)
         
-        combinedPatterns = [self.combinePatterns(patterns) for patterns in trajPatterns]
+        nonEmptyTrajPatterns = [pattern for pattern in trajPatterns if len(pattern) > 0]
+        combinedPatterns = [self.combinePatterns(patterns) for patterns in nonEmptyTrajPatterns]
         return combinedPatterns
     
     def filterByHeadingDiff(self, heading: float, patterns: List[Pattern]) -> List[Pattern]:
